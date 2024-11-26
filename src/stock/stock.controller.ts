@@ -1,7 +1,7 @@
 import { Controller, Get, Put, Param, HttpCode, HttpStatus } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiParam, ApiResponse } from '@nestjs/swagger';
 
-import { StockPrice } from './models/stock-price.class';
+import { GetStockDataResponseInterface } from './interfaces/get-stock-data-response.interface';
 import { StockService } from './stock.service';
 
 @Controller('stock')
@@ -10,7 +10,7 @@ export class StockController {
   constructor(private readonly stockService: StockService) {}
 
   @Get(':symbol')
-  @ApiOperation({ summary: 'Get the current stock price' })
+  @ApiOperation({ summary: 'Get current stock price, last update time, and moving average' })
   @ApiParam({
     name: 'symbol',
     description: 'Stock symbol (e.g. AAPL for Apple)',
@@ -18,13 +18,21 @@ export class StockController {
   })
   @ApiResponse({
     status: 200,
-    description: 'The current stock price and other data',
-    type: StockPrice,
+    description: 'Current stock price, last update time, and moving average',
+    schema: {
+      type: 'object',
+      properties: {
+        currentPrice: { type: 'number', example: 150.73 },
+        lastUpdate: { type: 'string', format: 'date-time', example: '2023-11-26T15:30:00Z' },
+        movingAverage: { type: 'number', example: 149.85 },
+      },
+    },
   })
-  @ApiResponse({ status: 400, description: 'Invalid data from Finnhub API' })
-  @ApiResponse({ status: 500, description: 'Error retrieving stock price' })
-  async getStockPrice(@Param('symbol') symbol: string): Promise<StockPrice> {
-    return await this.stockService.getStockPrice(symbol);
+  @ApiResponse({ status: 400, description: 'Invalid data' })
+  @ApiResponse({ status: 404, description: 'Symbol not found or no data available' })
+  @ApiResponse({ status: 500, description: 'Error retrieving stock data' })
+  async getStockData(@Param('symbol') symbol: string): Promise<GetStockDataResponseInterface> {
+    return await this.stockService.getStockData(symbol);
   }
 
   @Put(':symbol')

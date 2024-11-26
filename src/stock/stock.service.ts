@@ -31,7 +31,15 @@ export class StockService {
       );
       const data = response.data;
 
-      if (data && data.c !== undefined) {
+      if (
+        data &&
+        data.c !== undefined &&
+        data.t !== undefined &&
+        data.h !== undefined &&
+        data.l !== undefined &&
+        data.o !== undefined &&
+        data.pc !== undefined
+      ) {
         return new StockPrice(data);
       } else {
         throw new HttpException(
@@ -40,6 +48,10 @@ export class StockService {
         );
       }
     } catch (error) {
+      if (error instanceof HttpException) {
+        throw error;
+      }
+
       throw new HttpException(
         'Error retrieving stock price',
         error.response?.status || HttpStatus.INTERNAL_SERVER_ERROR,

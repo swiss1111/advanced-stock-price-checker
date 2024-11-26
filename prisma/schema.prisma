@@ -1,0 +1,27 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Symbol {
+  id        Int          @id @default(autoincrement())
+  code      String       @unique
+  isActive  Boolean      @default(false)
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+  stockPrices StockPrice[]
+}
+
+model StockPrice {
+  id        Int      @id @default(autoincrement())
+  symbolId  Int
+  price     Float
+  timestamp DateTime
+  symbol    Symbol   @relation(fields: [symbolId], references: [id], onDelete: Cascade)
+
+  @@index([symbolId])
+}
